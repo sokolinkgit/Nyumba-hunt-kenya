@@ -129,18 +129,6 @@
     wrap.addEventListener("mouseleave", () => (tilt.style.transform = ""));
   }
 
-  /* ---------------- Budget slider ---------------- */
-  const budget = $("#tBudget");
-  const budgetOut = $("#budgetOut");
-  function syncBudget() {
-    if (!budget) return;
-    const pct = ((budget.value - budget.min) / (budget.max - budget.min)) * 100;
-    budget.style.setProperty("--fill", pct + "%");
-    budgetOut.textContent = money(budget.value);
-  }
-  budget?.addEventListener("input", syncBudget);
-  syncBudget();
-
   /* ---------------- Date minimums ---------------- */
   const today = new Date().toISOString().split("T")[0];
   $("#tViewDate").min = today;
@@ -183,6 +171,12 @@
     const f = e.target;
     if (!markErrors(f)) return toast("⚠️ Please fill in all required fields.");
 
+    const bMin = Number(f.budgetMin.value);
+    const bMax = f.budgetMax.value ? Number(f.budgetMax.value) : 0;
+    const budgetText = bMax && bMax !== bMin
+      ? `${money(Math.min(bMin, bMax))} – ${money(Math.max(bMin, bMax))} per month`
+      : `${money(bMin)} per month`;
+
     const msg =
 `🏠 *NYUMBA HUNT KENYA — TENANT SEARCH* 🏠
 Hello! I'd like you to hunt a rental for me:
@@ -191,7 +185,7 @@ Hello! I'd like you to hunt a rental for me:
 📞 *Phone:* ${f.phone.value.trim()}
 🏘️ *Unit type:* ${f.unitType.value}
 📍 *Location:* ${f.location.value}
-💰 *Budget:* ${money(f.budget.value)} per month
+💰 *Budget:* ${budgetText}
 👀 *Date to come see rentals:* ${fmtDate(f.viewDate.value)}
 📦 *Date to move in:* ${fmtDate(f.moveDate.value)}
 💧 *Must-haves:* ${f.extras.value}
