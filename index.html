@@ -193,9 +193,19 @@
             </div>
 
             <div class="field field-budget">
-              <label for="tBudget">💰 Monthly Budget — <strong id="budgetOut" class="budget-out">KSh 8,500</strong></label>
-              <input type="range" id="tBudget" name="budget" min="3000" max="35000" step="500" value="8500" />
-              <div class="range-scale"><span>KSh 3,000</span><span>KSh 35,000</span></div>
+              <label for="tBudgetMin">💰 Monthly Budget Range</label>
+              <div class="budget-inputs">
+                <div class="budget-box">
+                  <span class="budget-cur">KSh</span>
+                  <input type="number" id="tBudgetMin" name="budgetMin" placeholder="Min · e.g. 5,000" min="0" step="100" inputmode="numeric" required />
+                </div>
+                <span class="budget-sep" aria-hidden="true">–</span>
+                <div class="budget-box">
+                  <span class="budget-cur">KSh</span>
+                  <input type="number" id="tBudgetMax" name="budgetMax" placeholder="Max · e.g. 15,000" min="0" step="100" inputmode="numeric" />
+                </div>
+              </div>
+              <small class="budget-hint">Type your budget range — max is optional if you have one exact figure.</small>
             </div>
 
             <div class="field">
