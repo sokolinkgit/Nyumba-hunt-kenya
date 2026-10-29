@@ -154,7 +154,6 @@
                 <option>3 Bedroom</option>
                 <option>4 Bedroom</option>
                 <option>Maisonette / House</option>
-                <option>Shared House</option>
               </select>
             </div>
 
@@ -203,7 +202,9 @@
 
             <div class="field">
               <label for="tViewDate">👀 Date to Come See Rentals</label>
-              <input type="date" id="tViewDate" name="viewDate" required />
+              <input type="date" id="tViewDate" name="viewDate" required aria-describedby="tViewDateHint tViewDateError" />
+              <small class="field-hint viewing-hint" id="tViewDateHint">🕒 Please give us <strong>at least 48 hours’ notice</strong>. For the earliest date, confirm a time at least 48 hours away on WhatsApp.</small>
+              <small class="field-error" id="tViewDateError" role="alert" hidden></small>
             </div>
 
             <div class="field field-full">
@@ -448,24 +449,71 @@
             </select>
           </div>
 
-          <div class="field">
-            <label for="lType">🏘️ Unit Types Available</label>
-            <select id="lType" name="unitType" required>
-              <option value="" disabled selected>Select unit type…</option>
-              <option>Single Rooms</option>
-              <option>Bedsitters</option>
-              <option>Studios</option>
-              <option>1 Bedrooms</option>
-              <option>2 Bedrooms</option>
-              <option>3 Bedrooms / Maisonettes</option>
-              <option>Mixed Units</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label for="lUnits">🔢 Vacant Units Now</label>
-            <input type="number" id="lUnits" name="units" min="1" max="200" placeholder="e.g. 4" required />
-          </div>
+          <fieldset class="field unit-types" id="lUnitTypes" aria-describedby="lUnitHint lUnitError">
+            <legend>🏘️ Unit Types Available</legend>
+            <small class="field-hint" id="lUnitHint">Select all that apply, then enter how many are vacant for each type.</small>
+            <div class="unit-list">
+              <div class="unit-list-heading" aria-hidden="true"><span>Unit type</span><span>Vacant</span></div>
+              <div class="unit-option">
+                <label class="unit-choice"><input type="checkbox" name="unitTypes" value="Single Rooms" /> <span>Single Rooms</span></label>
+                <div class="unit-count">
+                  <label class="visually-hidden" for="lCount-singleRooms">Number of vacant Single Rooms</label>
+                  <input type="number" id="lCount-singleRooms" name="singleRoomsCount" min="1" step="1" inputmode="numeric" placeholder="0" disabled aria-describedby="lUnitHint lUnitError" />
+                </div>
+              </div>
+              <div class="unit-option">
+                <label class="unit-choice"><input type="checkbox" name="unitTypes" value="Bedsitters" /> <span>Bedsitters</span></label>
+                <div class="unit-count">
+                  <label class="visually-hidden" for="lCount-bedsitters">Number of vacant Bedsitters</label>
+                  <input type="number" id="lCount-bedsitters" name="bedsittersCount" min="1" step="1" inputmode="numeric" placeholder="0" disabled aria-describedby="lUnitHint lUnitError" />
+                </div>
+              </div>
+              <div class="unit-option">
+                <label class="unit-choice"><input type="checkbox" name="unitTypes" value="Studios" /> <span>Studios</span></label>
+                <div class="unit-count">
+                  <label class="visually-hidden" for="lCount-studios">Number of vacant Studios</label>
+                  <input type="number" id="lCount-studios" name="studiosCount" min="1" step="1" inputmode="numeric" placeholder="0" disabled aria-describedby="lUnitHint lUnitError" />
+                </div>
+              </div>
+              <div class="unit-option">
+                <label class="unit-choice"><input type="checkbox" name="unitTypes" value="1 Bedroom" /> <span>1 Bedroom</span></label>
+                <div class="unit-count">
+                  <label class="visually-hidden" for="lCount-oneBedroom">Number of vacant 1 Bedroom</label>
+                  <input type="number" id="lCount-oneBedroom" name="oneBedroomCount" min="1" step="1" inputmode="numeric" placeholder="0" disabled aria-describedby="lUnitHint lUnitError" />
+                </div>
+              </div>
+              <div class="unit-option">
+                <label class="unit-choice"><input type="checkbox" name="unitTypes" value="2 Bedroom" /> <span>2 Bedroom</span></label>
+                <div class="unit-count">
+                  <label class="visually-hidden" for="lCount-twoBedroom">Number of vacant 2 Bedroom</label>
+                  <input type="number" id="lCount-twoBedroom" name="twoBedroomCount" min="1" step="1" inputmode="numeric" placeholder="0" disabled aria-describedby="lUnitHint lUnitError" />
+                </div>
+              </div>
+              <div class="unit-option">
+                <label class="unit-choice"><input type="checkbox" name="unitTypes" value="3 Bedroom" /> <span>3 Bedroom</span></label>
+                <div class="unit-count">
+                  <label class="visually-hidden" for="lCount-threeBedroom">Number of vacant 3 Bedroom</label>
+                  <input type="number" id="lCount-threeBedroom" name="threeBedroomCount" min="1" step="1" inputmode="numeric" placeholder="0" disabled aria-describedby="lUnitHint lUnitError" />
+                </div>
+              </div>
+              <div class="unit-option">
+                <label class="unit-choice"><input type="checkbox" name="unitTypes" value="4 Bedroom" /> <span>4 Bedroom</span></label>
+                <div class="unit-count">
+                  <label class="visually-hidden" for="lCount-fourBedroom">Number of vacant 4 Bedroom</label>
+                  <input type="number" id="lCount-fourBedroom" name="fourBedroomCount" min="1" step="1" inputmode="numeric" placeholder="0" disabled aria-describedby="lUnitHint lUnitError" />
+                </div>
+              </div>
+              <div class="unit-option">
+                <label class="unit-choice"><input type="checkbox" name="unitTypes" value="Maisonettes / Houses" /> <span>Maisonettes / Houses</span></label>
+                <div class="unit-count">
+                  <label class="visually-hidden" for="lCount-maisonettes">Number of vacant Maisonettes / Houses</label>
+                  <input type="number" id="lCount-maisonettes" name="maisonettesCount" min="1" step="1" inputmode="numeric" placeholder="0" disabled aria-describedby="lUnitHint lUnitError" />
+                </div>
+              </div>
+            </div>
+            <small class="unit-summary" id="lUnitSummary" aria-live="polite">No vacant units selected yet.</small>
+            <small class="field-error" id="lUnitError" role="alert" hidden></small>
+          </fieldset>
 
           <div class="field">
             <label for="lRent">💰 Monthly Rent Range</label>

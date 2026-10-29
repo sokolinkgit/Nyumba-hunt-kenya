@@ -40,6 +40,10 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 img { max-width: 100%; display: block; }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
 a { text-decoration: none; color: inherit; }
 ul { list-style: none; }
 h1, h2, h3, h4 { font-family: var(--font-head); line-height: 1.18; color: var(--navy); }
@@ -334,6 +338,70 @@ section[id], .pricing-band[id] { scroll-margin-top: calc(var(--nav-h) + 14px); }
 .field input.error, .field select.error { border-color: #E5484D; box-shadow: 0 0 0 4px rgba(229,72,77,.12); animation: shake .4s; }
 @keyframes shake { 0%,100% { transform: translateX(0);} 25% { transform: translateX(-6px);} 75% { transform: translateX(6px);} }
 
+/* The native select remains in the form; JS enhances it with this themed listbox. */
+.custom-select { position: relative; width: 100%; }
+.custom-select.is-open { z-index: 30; }
+.select-trigger {
+  width: 100%; height: var(--control-h); display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; padding: 6px 8px 6px 14px; text-align: left; cursor: pointer;
+  font-family: var(--font-body); font-size: .95rem; color: var(--navy); font-weight: 500;
+  border: 1.6px solid #d3e1f3; border-radius: 12px;
+  background: linear-gradient(110deg, #fff 20%, #f3f8ff 100%);
+  transition: border-color .2s, box-shadow .2s, background .2s;
+}
+.select-trigger:hover { border-color: #91b8e9; background: #f7fbff; }
+.select-trigger:focus-visible, .custom-select.is-open .select-trigger {
+  outline: none; border-color: var(--blue); box-shadow: 0 0 0 4px rgba(11,99,206,.14);
+}
+.select-trigger.is-placeholder { color: var(--muted); font-weight: 400; }
+.select-trigger.error { border-color: #E5484D; box-shadow: 0 0 0 4px rgba(229,72,77,.12); }
+.select-value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.select-arrow {
+  flex: 0 0 28px; height: 28px; border-radius: 8px; background-color: #e8f1fc;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%230B63CE' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: center; transition: transform .2s, background-color .2s;
+}
+.custom-select.is-open .select-arrow { transform: rotate(180deg); background-color: #d9eaff; }
+.select-menu {
+  position: absolute; top: calc(100% + 8px); left: 0; right: 0; z-index: 31;
+  overflow-y: auto; overscroll-behavior: contain; padding: 6px;
+  border: 1px solid #d3e2f5; border-radius: 15px;
+  background: linear-gradient(155deg, #fff 10%, #f1f7ff 100%);
+  box-shadow: 0 18px 42px rgba(8,31,68,.19), 0 4px 12px rgba(11,99,206,.08);
+  scrollbar-width: thin; scrollbar-color: #a7c4e8 transparent;
+}
+.select-menu[hidden] { display: none; }
+.custom-select.opens-up .select-menu { top: auto; bottom: calc(100% + 8px); }
+.select-group + .select-group, .select-group + .select-option { border-top: 1px solid #e1ebf8; margin-top: 5px; padding-top: 5px; }
+.select-group-label {
+  padding: 8px 11px 5px; color: var(--orange-deep); font-family: var(--font-head);
+  font-size: .66rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase;
+}
+.select-option {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 38px;
+  padding: 9px 11px; border-radius: 9px; cursor: pointer; color: var(--navy-2);
+  font-size: .88rem; font-weight: 500; line-height: 1.35; transition: background .15s, color .15s;
+}
+.select-option.is-active { background: #e9f2ff; color: var(--blue-deep); }
+.select-option[aria-selected="true"] { background: #dcecff; color: var(--blue-deep); font-weight: 700; }
+.select-option[aria-selected="true"]::after { content: "✓"; color: var(--orange-deep); font-size: 1rem; font-weight: 800; }
+/* Native fallback, where the browser/OS permits option styling. */
+.field select option { color: var(--navy); background: #f4f8ff; }
+.field select optgroup { color: var(--blue-deep); background: #e8f1fc; font-weight: 700; }
+
+.field-hint { color: var(--muted); font-size: .75rem; font-weight: 500; line-height: 1.45; }
+.viewing-hint {
+  padding: 7px 10px; border-left: 3px solid #83b5ee; border-radius: 0 8px 8px 0;
+  background: #edf5ff; color: var(--blue-deep);
+}
+.viewing-hint strong { color: var(--navy); }
+.field-error { color: #b42332; font-size: .75rem; font-weight: 600; line-height: 1.4; }
+.field-error[hidden] { display: none; }
+.field input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer; width: 19px; height: 19px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230B63CE' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='3'/%3E%3Cpath d='M7 3v4M17 3v4M3 10h18M8 14h2M14 14h2M8 18h2'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
 /* budget range inputs (typed) — sits beside the viewing date on wide screens */
 .budget-inputs { display: flex; align-items: center; gap: 10px; }
 .budget-box {
@@ -495,6 +563,33 @@ section[id], .pricing-band[id] { scroll-margin-top: calc(var(--nav-h) + 14px); }
 .mini-badge:hover { transform: translateY(-4px); box-shadow: var(--shadow-sm); }
 
 .landlord-form { padding: 34px; display: flex; flex-direction: column; gap: 18px; }
+
+/* Multiple vacancy types, each with its own quantity. */
+.unit-types { min-width: 0; margin: 0; padding: 0; border: 0; }
+.unit-types legend { padding: 0; margin-bottom: 6px; color: var(--navy); font-size: .86rem; font-weight: 600; }
+.unit-list { overflow: hidden; border: 1px solid #dbe7f6; border-radius: 14px; background: #f8fbff; }
+.unit-list-heading, .unit-option { display: grid; grid-template-columns: minmax(0, 1fr) 72px; align-items: center; gap: 10px; }
+.unit-list-heading {
+  padding: 8px 12px; background: #edf5ff; color: var(--blue-deep);
+  font-family: var(--font-head); font-size: .65rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+}
+.unit-list-heading span:last-child { text-align: center; }
+.unit-option { padding: 5px 10px 5px 12px; border-top: 1px solid #e5edf8; transition: background .2s; }
+.unit-option.is-selected { background: #eaf3ff; }
+.field .unit-choice { display: flex; align-items: center; gap: 9px; min-width: 0; min-height: 38px; cursor: pointer; font-size: .83rem; font-weight: 600; }
+.field .unit-choice input[type="checkbox"] {
+  appearance: auto; flex: 0 0 18px; width: 18px; height: 18px; margin: 0; padding: 0;
+  accent-color: var(--blue); cursor: pointer; transform: none; box-shadow: none;
+}
+.field .unit-choice input[type="checkbox"]:focus-visible { outline: 3px solid #a9cffa; outline-offset: 2px; }
+.field .unit-count input {
+  width: 100%; height: 36px; padding: 5px 7px; border-color: #cbdcf1; border-radius: 9px;
+  text-align: center; font-size: .9rem; font-weight: 600;
+}
+.field .unit-count input:disabled { color: #94a4b8; background: #eef3f9; border-color: #e2eaf4; cursor: not-allowed; }
+.field .unit-count input:disabled::placeholder { color: #a6b5c8; }
+.unit-summary { color: var(--blue-deep); font-size: .75rem; font-weight: 600; line-height: 1.4; }
+
 .form-title { font-size: 1.25rem; font-weight: 800; text-align: center; }
 .form-fine { font-size: .74rem; color: var(--muted); text-align: center; margin-top: 10px; }
 
@@ -819,6 +914,13 @@ section[id], .pricing-band[id] { scroll-margin-top: calc(var(--nav-h) + 14px); }
   /* 16px stops iOS Safari zooming the page when a field is tapped */
   .field input, .field select, .field textarea { font-size: 16px; padding: 9px 12px; border-radius: 10px; }
   .field select { padding-right: 34px; background-position: right 12px center; }
+  .select-trigger { font-size: 16px; border-radius: 10px; padding-left: 12px; }
+  .select-option { min-height: 44px; font-size: .9rem; }
+  .field-hint, .field-error, .unit-summary { font-size: .72rem; }
+  .viewing-hint { padding: 6px 9px; }
+  .unit-types legend { font-size: .78rem; }
+  .field .unit-choice { font-size: .8rem; }
+  .field .unit-count input { font-size: 16px; }
   .field textarea { min-height: 46px; }
   .budget-inputs { gap: 6px; }
   .budget-box { padding: 0 10px; gap: 6px; border-radius: 10px; }
