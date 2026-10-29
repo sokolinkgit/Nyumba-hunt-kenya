@@ -28,8 +28,7 @@
      `units` must match the <option> values of the "Preferred Unit Type"
      dropdown in the tenant form. */
   const RATE_CARD = [
-    // "Shared House" has no rate of its own, so it follows the entry-level rate.
-    { label: "Bedsitter / Studio", units: ["Bedsitter", "Studio", "Shared House"], fee: 2000 },
+    { label: "Bedsitter / Studio", units: ["Bedsitter", "Studio"],                 fee: 2000 },
     { label: "1 Bedroom",          units: ["1 Bedroom"],                          fee: 2500 },
     { label: "2 Bedroom",          units: ["2 Bedroom"],                          fee: 3000 },
     { label: "3 Bedroom",          units: ["3 Bedroom"],                          fee: 4000 },
@@ -169,26 +168,254 @@
     wrap.addEventListener("mouseleave", () => (tilt.style.transform = ""));
   }
 
-  /* ---------------- Date minimum (can't book a viewing in the past) ---------------- */
-  const today = new Date().toISOString().split("T")[0];
-  $("#tViewDate").min = today;
+  /* ---------------- Branded, accessible select menus ----------------
+     Keep the native selects as the source of truth for forms and for a no-JS fallback. */
+  const selectTriggers = new WeakMap();
+  let openSelect = null;
 
-  /* ---------------- Validation helpers ---------------- */
+  function enhanceSelect(select) {
+    const label = select.labels[0];
+    if (!label) return;
+
+    label.id = label.id || `${select.id}-label`;
+    const wrapper = document.createElement("div");
+    wrapper.className = "custom-select";
+
+    const trigger = document.createElement("button");
+    trigger.type = "button";
+    trigger.id = `${select.id}-trigger`;
+    trigger.className = "select-trigger";
+    trigger.setAttribute("role", "combobox");
+    trigger.setAttribute("aria-haspopup", "listbox");
+    trigger.setAttribute("aria-expanded", "false");
+    trigger.setAttribute("aria-controls", `${select.id}-listbox`);
+    if (select.required) trigger.setAttribute("aria-required", "true");
+    trigger.disabled = select.disabled;
+
+    const value = document.createElement("span");
+    value.id = `${select.id}-value`;
+    value.className = "select-value";
+    trigger.setAttribute("aria-labelledby", `${label.id} ${value.id}`);
+    trigger.appendChild(value);
+
+    const arrow = document.createElement("span");
+    arrow.className = "select-arrow";
+    arrow.setAttribute("aria-hidden", "true");
+    trigger.appendChild(arrow);
+
+    const menu = document.createElement("div");
+    menu.id = `${select.id}-listbox`;
+    menu.className = "select-menu";
+    menu.setAttribute("role", "listbox");
+    menu.setAttribute("aria-labelledby", label.id);
+    menu.hidden = true;
+
+    const items = [];
+    function addOption(option, parent) {
+      // The disabled empty option is a placeholder, not a choice.
+      if (option.disabled) return;
+      const item = document.createElement("div");
+      item.id = `${select.id}-option-${items.length}`;
+      item.className = "select-option";
+      item.setAttribute("role", "option");
+      item.textContent = option.textContent;
+      parent.appendChild(item);
+      items.push({ option, item });
+      item.addEventListener("mouseenter", () => setActive(items.findIndex((entry) => entry.item === item)));
+      item.addEventListener("click", () => choose(items.findIndex((entry) => entry.item === item)));
+    }
+
+    Array.from(select.children).forEach((child) => {
+      if (child.tagName === "OPTGROUP") {
+        const group = document.createElement("div");
+        group.className = "select-group";
+        group.setAttribute("role", "group");
+        group.setAttribute("aria-label", child.label);
+        const heading = document.createElement("div");
+        heading.className = "select-group-label";
+        heading.setAttribute("aria-hidden", "true");
+        heading.textContent = child.label;
+        group.appendChild(heading);
+        Array.from(child.children).forEach((option) => addOption(option, group));
+        menu.appendChild(group);
+      } else if (child.tagName === "OPTION") {
+        addOption(child, menu);
+      }
+    });
+
+    let activeIndex = -1;
+    let search = "";
+    let searchTimer;
+    const controller = { wrapper, close };
+
+    function sync() {
+      const selected = select.selectedOptions[0];
+      value.textContent = selected ? selected.textContent : "Select an option…";
+      trigger.classList.toggle("is-placeholder", !select.value);
+      items.forEach(({ option, item }) => item.setAttribute("aria-selected", String(option.selected)));
+    }
+    function setActive(index) {
+      if (index < 0 || index >= items.length) return;
+      activeIndex = index;
+      items.forEach(({ item }, i) => item.classList.toggle("is-active", i === index));
+      trigger.setAttribute("aria-activedescendant", items[index].item.id);
+      // Scroll the menu, not the page, to keep keyboard navigation visible.
+      const optionRect = items[index].item.getBoundingClientRect();
+      const menuRect = menu.getBoundingClientRect();
+      if (optionRect.top < menuRect.top) menu.scrollTop -= menuRect.top - optionRect.top;
+      if (optionRect.bottom > menuRect.bottom) menu.scrollTop += optionRect.bottom - menuRect.bottom;
+    }
+    function open() {
+      if (!items.length || trigger.disabled) return;
+      if (openSelect && openSelect !== controller) openSelect.close();
+      openSelect = controller;
+      menu.hidden = false;
+      wrapper.classList.add("is-open");
+      trigger.setAttribute("aria-expanded", "true");
+
+      const rect = trigger.getBoundingClientRect();
+      const below = window.innerHeight - rect.bottom - 12;
+      const above = rect.top - 12;
+      const desiredHeight = Math.min(menu.scrollHeight, 320);
+      const opensUp = below < Math.min(desiredHeight, 200) && above > below;
+      wrapper.classList.toggle("opens-up", opensUp);
+      menu.style.maxHeight = `${Math.min(320, Math.max(120, opensUp ? above : below))}px`;
+      const selectedIndex = items.findIndex(({ option }) => option.selected);
+      setActive(selectedIndex >= 0 ? selectedIndex : 0);
+    }
+    function close() {
+      menu.hidden = true;
+      wrapper.classList.remove("is-open", "opens-up");
+      trigger.setAttribute("aria-expanded", "false");
+      trigger.removeAttribute("aria-activedescendant");
+      if (openSelect === controller) openSelect = null;
+    }
+    function choose(index) {
+      if (index < 0 || index >= items.length) return;
+      select.value = items[index].option.value;
+      select.dispatchEvent(new Event("input", { bubbles: true }));
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+      sync();
+      close();
+      trigger.focus();
+    }
+
+    trigger.addEventListener("click", () => (menu.hidden ? open() : close()));
+    trigger.addEventListener("keydown", (event) => {
+      if (event.key === "Tab") { close(); return; }
+      if (event.key === "Escape") { if (!menu.hidden) { event.preventDefault(); close(); } return; }
+      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        event.preventDefault();
+        if (menu.hidden) open();
+        else setActive(Math.max(0, Math.min(items.length - 1, activeIndex + (event.key === "ArrowDown" ? 1 : -1))));
+        return;
+      }
+      if (event.key === "Home" || event.key === "End") {
+        if (menu.hidden) return;
+        event.preventDefault();
+        setActive(event.key === "Home" ? 0 : items.length - 1);
+        return;
+      }
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        if (menu.hidden) open(); else choose(activeIndex);
+        return;
+      }
+      if (event.key.length === 1 && !event.altKey && !event.ctrlKey && !event.metaKey) {
+        event.preventDefault();
+        if (menu.hidden) open();
+        search += event.key.toLocaleLowerCase();
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => { search = ""; }, 700);
+        const match = items.findIndex(({ option }) => option.textContent.trim().toLocaleLowerCase().startsWith(search));
+        if (match >= 0) setActive(match);
+      }
+    });
+    select.addEventListener("change", sync);
+    if (select.form) select.form.addEventListener("reset", () => setTimeout(sync, 0));
+
+    wrapper.append(trigger, menu);
+    select.insertAdjacentElement("afterend", wrapper);
+    select.hidden = true;
+    label.htmlFor = trigger.id;
+    selectTriggers.set(select, trigger);
+    sync();
+  }
+
+  $$(".field select").forEach(enhanceSelect);
+  document.addEventListener("pointerdown", (event) => {
+    if (openSelect && !openSelect.wrapper.contains(event.target)) openSelect.close();
+  });
+  window.addEventListener("blur", () => { if (openSelect) openSelect.close(); });
+
+  /* ---------------- Viewing date and validation ---------------- */
+  const viewingDate = $("#tViewDate");
+  const viewingDateError = $("#tViewDateError");
+  function updateViewingMin() {
+    // Viewings take place in Kenya. A date alone cannot specify the time on that day;
+    // the hint asks tenants to confirm a time at least 48 hours away on WhatsApp.
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Africa/Nairobi", year: "numeric", month: "2-digit", day: "2-digit"
+    }).formatToParts(new Date(Date.now() + 48 * 60 * 60 * 1000));
+    const date = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+    viewingDate.min = `${date.year}-${date.month}-${date.day}`;
+  }
+  updateViewingMin();
+  viewingDate.addEventListener("focus", updateViewingMin);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) updateViewingMin(); });
+
+  function fieldIsInvalid(field) {
+    if (field.disabled) return false;
+    if (!field.value.trim()) return true;
+    // Preserve the existing free-form budget behaviour while enforcing the new
+    // viewing-date and per-type vacancy constraints.
+    return (field === viewingDate || field.matches(".unit-count input")) && !field.validity.valid;
+  }
+  function setFieldError(field, bad) {
+    field.classList.toggle("error", bad);
+    if (bad) field.setAttribute("aria-invalid", "true");
+    else field.removeAttribute("aria-invalid");
+    const trigger = selectTriggers.get(field);
+    if (trigger) {
+      trigger.classList.toggle("error", bad);
+      if (bad) trigger.setAttribute("aria-invalid", "true");
+      else trigger.removeAttribute("aria-invalid");
+    }
+    if (field === viewingDate) {
+      viewingDateError.hidden = !bad;
+      viewingDateError.textContent = bad
+        ? (field.validity.rangeUnderflow
+          ? `Please choose ${fmtDate(field.min)} or later and allow at least 48 hours’ notice.`
+          : "Please choose a viewing date and allow at least 48 hours’ notice.")
+        : "";
+    }
+  }
   function markErrors(form) {
     let firstBad = null;
-    $$("input[required], select[required], textarea[required]", form).forEach((f) => {
-      const bad = !f.value.trim();
-      f.classList.toggle("error", bad);
-      if (bad && !firstBad) firstBad = f;
-      f.addEventListener("input", () => f.classList.remove("error"), { once: true });
-      f.addEventListener("change", () => f.classList.remove("error"), { once: true });
+    $$("input[required], select[required], textarea[required]", form).forEach((field) => {
+      const bad = fieldIsInvalid(field);
+      setFieldError(field, bad);
+      if (bad && !firstBad) firstBad = field;
     });
-    if (firstBad) {
-      firstBad.focus();
-      firstBad.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-    return !firstBad;
+    return firstBad;
   }
+  function focusError(field) {
+    const target = selectTriggers.get(field) || field;
+    target.focus({ preventScroll: true });
+    target.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  function firstInDocument(a, b) {
+    if (!a) return b;
+    if (!b) return a;
+    return a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_PRECEDING ? b : a;
+  }
+  $$("form input, form select, form textarea").forEach((field) => {
+    const clearWhenValid = () => {
+      if (field.classList.contains("error")) setFieldError(field, fieldIsInvalid(field));
+    };
+    field.addEventListener("input", clearWhenValid);
+    field.addEventListener("change", clearWhenValid);
+  });
   function fmtDate(v) {
     if (!v) return "Flexible";
     const d = new Date(v + "T00:00:00");
@@ -222,7 +449,14 @@
   tenantForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const f = e.target;
-    if (!markErrors(f)) return toast("⚠️ Please fill in all required fields.");
+    updateViewingMin();
+    const firstBad = markErrors(f);
+    if (firstBad) {
+      focusError(firstBad);
+      return toast(firstBad === viewingDate
+        ? "⚠️ Please choose a date that allows at least 48 hours’ notice."
+        : "⚠️ Please check the highlighted fields.");
+    }
 
     const bMin = Number(f.budgetMin.value);
     const bMax = f.budgetMax.value ? Number(f.budgetMax.value) : 0;
@@ -254,11 +488,89 @@ ${chargeLine}`;
   });
 
   /* ---------------- Landlord form ---------------- */
-  $("#landlordForm").addEventListener("submit", (e) => {
+  const landlordForm = $("#landlordForm");
+  const unitRows = $$(".unit-option", landlordForm).map((row) => ({
+    row,
+    checkbox: $("input[type=checkbox]", row),
+    count: $("input[type=number]", row)
+  }));
+  const unitSummary = $("#lUnitSummary");
+  const unitError = $("#lUnitError");
+  let showUnitErrors = false;
+
+  function selectedUnits() {
+    return unitRows.filter(({ checkbox }) => checkbox.checked);
+  }
+  function unitValidationError() {
+    const selected = selectedUnits();
+    if (!selected.length) {
+      return { target: unitRows[0].checkbox, message: "Select at least one unit type." };
+    }
+    const invalid = selected.find(({ count }) => fieldIsInvalid(count));
+    if (invalid) {
+      return { target: invalid.count, message: "Enter a whole number of at least 1 for each selected unit type." };
+    }
+    return null;
+  }
+  function updateUnitSummary() {
+    const selected = selectedUnits();
+    const invalid = unitValidationError();
+    if (!selected.length) {
+      unitSummary.textContent = "No vacant units selected yet.";
+    } else if (invalid) {
+      unitSummary.textContent = `${selected.length} unit type${selected.length === 1 ? "" : "s"} selected · Enter each vacant count.`;
+    } else {
+      const total = selected.reduce((sum, { count }) => sum + Number(count.value), 0);
+      unitSummary.textContent = `${num(total)} vacant unit${total === 1 ? "" : "s"} across ${selected.length} type${selected.length === 1 ? "" : "s"}.`;
+    }
+    if (showUnitErrors) {
+      unitError.hidden = !invalid;
+      unitError.textContent = invalid ? invalid.message : "";
+    }
+  }
+  function syncUnitRow({ row, checkbox, count }) {
+    row.classList.toggle("is-selected", checkbox.checked);
+    count.disabled = !checkbox.checked;
+    count.required = checkbox.checked;
+    if (!checkbox.checked) setFieldError(count, false);
+    else if (showUnitErrors) setFieldError(count, fieldIsInvalid(count));
+  }
+  function syncUnitRows() {
+    unitRows.forEach(syncUnitRow);
+    updateUnitSummary();
+  }
+  unitRows.forEach((unit) => {
+    unit.checkbox.addEventListener("change", () => { syncUnitRow(unit); updateUnitSummary(); });
+    unit.count.addEventListener("input", updateUnitSummary);
+    unit.count.addEventListener("change", updateUnitSummary);
+  });
+  syncUnitRows();
+  // Browser history restoration (and form resets) can change checkbox state without a change event.
+  window.addEventListener("pageshow", syncUnitRows);
+  landlordForm.addEventListener("reset", () => {
+    showUnitErrors = false;
+    unitError.hidden = true;
+    unitError.textContent = "";
+    setTimeout(syncUnitRows, 0);
+  });
+
+  landlordForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const f = e.target;
-    if (!markErrors(f)) return toast("⚠️ Please fill in all required fields.");
+    showUnitErrors = true;
+    syncUnitRows();
+    const unitErrorState = unitValidationError();
+    const firstBad = firstInDocument(markErrors(f), unitErrorState && unitErrorState.target);
+    if (firstBad) {
+      focusError(firstBad);
+      return toast(unitErrorState && firstBad === unitErrorState.target
+        ? `⚠️ ${unitErrorState.message}`
+        : "⚠️ Please check the highlighted fields.");
+    }
 
+    const selected = selectedUnits();
+    const breakdown = selected.map(({ checkbox, count }) => `• ${checkbox.value}: ${num(count.value)}`).join("\n");
+    const total = selected.reduce((sum, { count }) => sum + Number(count.value), 0);
     const msg =
 `🏢 *NYUMBA HUNT KENYA — LANDLORD REGISTRATION* 🏢
 Hello! I'd like to register my property and get tenants:
@@ -266,8 +578,9 @@ Hello! I'd like to register my property and get tenants:
 👤 *Name:* ${f.name.value.trim()}
 📞 *Phone:* ${f.phone.value.trim()}
 📍 *Property location:* ${f.location.value}
-🏘️ *Unit types available:* ${f.unitType.value}
-🔢 *Vacant units now:* ${f.units.value}
+🏘️ *Unit types available:*
+${breakdown}
+🔢 *Vacant units now:* ${num(total)}
 💰 *Monthly rent range:* ${f.rent.value.trim()}
 📝 *Amenities / notes:* ${f.notes.value.trim() || "—"}
 
@@ -280,7 +593,11 @@ Kindly register me and start bringing serious tenants. Asante!`;
   $("#contactForm").addEventListener("submit", (e) => {
     e.preventDefault();
     const f = e.target;
-    if (!markErrors(f)) return toast("⚠️ Please fill in all required fields.");
+    const firstBad = markErrors(f);
+    if (firstBad) {
+      focusError(firstBad);
+      return toast("⚠️ Please check the highlighted fields.");
+    }
 
     const msg =
 `✉️ *NYUMBA HUNT KENYA — WEBSITE MESSAGE*
