@@ -9,7 +9,8 @@
   const waLink = (msg) => `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
   const $  = (s, c = document) => c.querySelector(s);
   const $$ = (s, c = document) => Array.from(c.querySelectorAll(s));
-  const money = (n) => "KSh " + Number(n).toLocaleString("en-KE");
+  const num   = (n) => Number(n).toLocaleString("en-KE");
+  const money = (n) => "KSh " + num(n);
 
   /* ---------------- Toast ---------------- */
   const toastEl = $("#toast");
@@ -21,12 +22,51 @@
     toastTimer = setTimeout(() => toastEl.classList.remove("show"), ms);
   }
 
-  /* ---------------- Preloader ---------------- */
-  window.addEventListener("load", () => {
-    setTimeout(() => $("#preloader").classList.add("done"), 650);
+  /* ---------------- Charges by unit type ----------------
+     ONE place to edit prices. Everything on the site that shows a charge
+     (tenant-form note, pricing card, WhatsApp messages) reads from this table.
+     `units` must match the <option> values of the "Preferred Unit Type"
+     dropdown in the tenant form. */
+  const RATE_CARD = [
+    // "Shared House" has no rate of its own, so it follows the entry-level rate.
+    { label: "Bedsitter / Studio", units: ["Bedsitter", "Studio", "Shared House"], fee: 2000 },
+    { label: "1 Bedroom",          units: ["1 Bedroom"],                          fee: 2500 },
+    { label: "2 Bedroom",          units: ["2 Bedroom"],                          fee: 3000 },
+    { label: "3 Bedroom",          units: ["3 Bedroom"],                          fee: 4000 },
+    { label: "4 Bedroom",          units: ["4 Bedroom"],                          fee: 4500 },
+    { label: "Maisonette / House", units: ["Maisonette / House"],                 fee: 6000 }
+  ];
+  const feeFor = (unit) => {
+    const row = RATE_CARD.find((r) => r.units.includes(unit));
+    return row ? row.fee : null;
+  };
+  const MIN_FEE = Math.min(...RATE_CARD.map((r) => r.fee));
+
+  // "Bedsitter" → "KSh 2,000"   ·   "Bedsitter,1 Bedroom" → "KSh 2,000 (Bedsitter) / KSh 2,500 (1 Bedroom)"
+  function chargeFor(types) {
+    const found = String(types || "")
+      .split(",").map((t) => t.trim()).filter(Boolean)
+      .map((t) => ({ t, fee: feeFor(t) }))
+      .filter((x) => x.fee);
+    if (!found.length) return "";
+    const fees = [...new Set(found.map((x) => x.fee))];
+    return fees.length === 1 ? money(fees[0]) : found.map((x) => `${money(x.fee)} (${x.t})`).join(" / ");
+  }
+
+  // pricing card: one row per rate
+  const rateList = $("#rateList");
+  if (rateList) {
+    rateList.innerHTML = RATE_CARD.map(
+      (r) => `<li><span>${r.label}</span> <strong><small>KSh</small> ${num(r.fee)}</strong></li>`
+    ).join("");
+  }
+
+  // safety net for future edits: every dropdown option needs a charge
+  $$("#tType option").forEach((o) => {
+    if (o.value && feeFor(o.value) === null) {
+      console.warn(`[Nyumba Hunt] No charge set for unit type "${o.value}" — add it to RATE_CARD in js/script.js`);
+    }
   });
-  // safety fallback
-  setTimeout(() => $("#preloader")?.classList.add("done"), 3500);
 
   /* ---------------- Year ---------------- */
   $("#year").textContent = new Date().getFullYear();
@@ -129,15 +169,9 @@
     wrap.addEventListener("mouseleave", () => (tilt.style.transform = ""));
   }
 
-  /* ---------------- Date minimums ---------------- */
+  /* ---------------- Date minimum (can't book a viewing in the past) ---------------- */
   const today = new Date().toISOString().split("T")[0];
   $("#tViewDate").min = today;
-  $("#tMoveDate").min = today;
-  $("#tViewDate").addEventListener("change", (e) => {
-    const move = $("#tMoveDate");
-    if (e.target.value && move.value && move.value < e.target.value) move.value = e.target.value;
-    move.min = e.target.value || today;
-  });
 
   /* ---------------- Validation helpers ---------------- */
   function markErrors(form) {
@@ -166,7 +200,26 @@
   }
 
   /* ---------------- Tenant form ---------------- */
-  $("#tenantForm").addEventListener("submit", (e) => {
+  const tenantForm = $("#tenantForm");
+  const feeAmount = $("#feeAmount");
+  const feeUnit = $("#feeUnit");
+
+  // The charge in the form note follows the unit type the tenant picks.
+  function updateFee(animate = true) {
+    const unit = tenantForm.unitType.value;
+    const fee = feeFor(unit);
+    feeAmount.textContent = fee ? money(fee) : `from ${money(MIN_FEE)}`;
+    feeUnit.textContent = fee ? ` (${unit})` : " (by unit type)";
+    if (animate) {
+      feeAmount.classList.remove("bump");
+      void feeAmount.offsetWidth; // restart the CSS animation
+      feeAmount.classList.add("bump");
+    }
+  }
+  tenantForm.unitType.addEventListener("change", () => updateFee());
+  updateFee(false);
+
+  tenantForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const f = e.target;
     if (!markErrors(f)) return toast("⚠️ Please fill in all required fields.");
@@ -177,21 +230,25 @@
       ? `${money(Math.min(bMin, bMax))} – ${money(Math.max(bMin, bMax))} per month`
       : `${money(bMin)} per month`;
 
+    const unit = f.unitType.value;
+    const fee = feeFor(unit);
+    const chargeLine = fee
+      ? `I understand the charge for a *${unit}* is *${money(fee)}* (transport to view options provided) until I get my desired rental. Asante!`
+      : `I understand the charge depends on my unit type (transport to view options provided) until I get my desired rental. Asante!`;
+
     const msg =
 `🏠 *NYUMBA HUNT KENYA — TENANT SEARCH* 🏠
 Hello! I'd like you to hunt a rental for me:
 
 👤 *Name:* ${f.name.value.trim()}
 📞 *Phone:* ${f.phone.value.trim()}
-🏘️ *Unit type:* ${f.unitType.value}
+🏘️ *Unit type:* ${unit}
 📍 *Location:* ${f.location.value}
 💰 *Budget:* ${budgetText}
 👀 *Date to come see rentals:* ${fmtDate(f.viewDate.value)}
-📦 *Date to move in:* ${fmtDate(f.moveDate.value)}
-💧 *Must-haves:* ${f.extras.value}
 📝 *Notes:* ${f.notes.value.trim() || "—"}
 
-I understand the charge is a flat *KSh 2,000* (transport to view options provided) until I get my desired rental. Asante!`;
+${chargeLine}`;
 
     sendToWhatsApp(msg, "✅ Opening WhatsApp… your search is on its way!");
   });
@@ -240,13 +297,18 @@ ${f.message.value.trim()}`;
     btn.addEventListener("click", (e) => {
       e.preventDefault();
       const unit = btn.dataset.waUnit;
+      // charge for this listing's unit type(s); listings with no rate defined simply don't quote one
+      const charge = chargeFor(btn.dataset.waType);
+      const terms = charge
+        ? `transport provided; my charge is ${charge} until I get my desired rental`
+        : "transport provided until I get my desired rental";
       sendToWhatsApp(
 `🏠 *Nyumba Hunt Kenya — Listing Enquiry*
 Hello! I'm interested in this unit:
 
 ▸ ${unit}
 
-Is it still available? I'd like to schedule a viewing (transport provided, flat KSh 2,000 until I get my desired rental).`
+Is it still available? I'd like to schedule a viewing (${terms}).`
       , "💬 Opening WhatsApp for this unit…");
     });
   });
@@ -376,6 +438,6 @@ Is it still available? I'd like to schedule a viewing (transport provided, flat 
 
   /* ---------------- Friendly first-visit toast ---------------- */
   setTimeout(() => {
-    if (window.scrollY < 100) toast("👋 Karibu! Tell us your budget & dates — we'll hunt your home.");
+    if (window.scrollY < 100) toast("👋 Karibu! Tell us your budget & viewing date — we'll hunt your home.");
   }, 4200);
 })();

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Nyumba Hunt Kenya — Stress-Free Rentals in Kasarani &amp; Roysambu</title>
-  <meta name="description" content="Nyumba Hunt Kenya helps tenants find rentals and landlords find tenants in Kasarani & Roysambu — stress-free, safe and reliable. Flat KSh 2,000 until you get your desired home. Submit your search on WhatsApp." />
+  <meta name="description" content="Nyumba Hunt Kenya helps tenants find rentals and landlords find tenants in Kasarani & Roysambu — stress-free, safe and reliable. Charges from KSh 2,000 by unit type until you get your desired home. Submit your search on WhatsApp." />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230B63CE'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='%23FF7A1A'>🏠</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -12,13 +12,6 @@
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-
-  <!-- ============ PRELOADER ============ -->
-  <div class="preloader" id="preloader" aria-hidden="true">
-    <div class="preloader-house">🏠</div>
-    <div class="preloader-text">Nyumba Hunt<span>Kenya</span></div>
-    <div class="preloader-bar"><span></span></div>
-  </div>
 
   <!-- ============ NAVBAR ============ -->
   <header class="navbar" id="navbar">
@@ -62,9 +55,9 @@
             Find Your Next Home <span class="grad-text">Without the Stress</span>
           </h1>
           <p class="lead reveal d2">
-            Tell us the unit you want, your budget and your dates — we hunt it down for you.
-            We provide <strong>transport to view options</strong>, and you pay a flat
-            <strong>KSh 2,000</strong> until you get your desired rental. Safe. Reliable. Karibu nyumbani. 🇰🇪
+            Tell us the unit you want, your budget and your viewing date — we hunt it down for you.
+            We provide <strong>transport to view options</strong>, and you pay one simple charge by
+            unit type — from <strong>KSh 2,000</strong> — until you get your desired rental. Safe. Reliable. Karibu nyumbani. 🇰🇪
           </p>
 
           <div class="hero-ctas reveal d3">
@@ -86,8 +79,8 @@
               <span class="stat-label">Registered Landlords</span>
             </div>
             <div class="stat">
-              <span class="stat-num" data-count="2">0</span>
-              <span class="stat-label">KSh Flat Charge</span>
+              <span class="stat-num" data-count="2000">0</span>
+              <span class="stat-label">Charges From (KSh)</span>
             </div>
             <div class="stat">
               <span class="stat-num" data-count="48">0</span><span class="stat-plus">h</span>
@@ -135,7 +128,7 @@
         <div class="section-head reveal">
           <span class="tag tag-orange">For Tenants</span>
           <h2>Tell us your dream unit. <span class="grad-text">We'll hunt it down.</span></h2>
-          <p>Fill in what you want, where, and your budget — pick a viewing date and a move-in date, then submit straight to our WhatsApp. We take it from there.</p>
+          <p>Fill in what you want, where, and your budget — pick a viewing date, then submit straight to our WhatsApp. We take it from there.</p>
         </div>
 
         <form class="hunt-form card-glass reveal d1" id="tenantForm" novalidate>
@@ -156,10 +149,10 @@
                 <option value="" disabled selected>Select unit type…</option>
                 <option>Bedsitter</option>
                 <option>Studio</option>
-                <option>Single Room</option>
                 <option>1 Bedroom</option>
                 <option>2 Bedroom</option>
                 <option>3 Bedroom</option>
+                <option>4 Bedroom</option>
                 <option>Maisonette / House</option>
                 <option>Shared House</option>
               </select>
@@ -197,12 +190,12 @@
               <div class="budget-inputs">
                 <div class="budget-box">
                   <span class="budget-cur">KSh</span>
-                  <input type="number" id="tBudgetMin" name="budgetMin" placeholder="Min · e.g. 5,000" min="0" step="100" inputmode="numeric" required />
+                  <input type="number" id="tBudgetMin" name="budgetMin" placeholder="5,000" min="0" step="100" inputmode="numeric" required aria-label="Minimum monthly budget in KSh" />
                 </div>
                 <span class="budget-sep" aria-hidden="true">–</span>
                 <div class="budget-box">
                   <span class="budget-cur">KSh</span>
-                  <input type="number" id="tBudgetMax" name="budgetMax" placeholder="Max · e.g. 15,000" min="0" step="100" inputmode="numeric" />
+                  <input type="number" id="tBudgetMax" name="budgetMax" placeholder="15,000" min="0" step="100" inputmode="numeric" aria-label="Maximum monthly budget in KSh (optional)" />
                 </div>
               </div>
               <small class="budget-hint">Type your budget range — max is optional if you have one exact figure.</small>
@@ -213,34 +206,15 @@
               <input type="date" id="tViewDate" name="viewDate" required />
             </div>
 
-            <div class="field">
-              <label for="tMoveDate">📦 Date to Move In</label>
-              <input type="date" id="tMoveDate" name="moveDate" required />
-            </div>
-
-            <div class="field">
-              <label for="tWater">💧 Must-haves <small>(optional)</small></label>
-              <select id="tWater" name="extras">
-                <option value="Not specified">No strong preference</option>
-                <option>Borehole water</option>
-                <option>KENEC power / tokens</option>
-                <option>Water &amp; tokens</option>
-                <option>Instant showers</option>
-                <option>Cooking gas piping</option>
-                <option>WiFi-ready</option>
-                <option>Parking space</option>
-                <option>Ground floor</option>
-              </select>
-            </div>
-
             <div class="field field-full">
               <label for="tNotes">📝 Anything else? <small>(optional)</small></label>
-              <textarea id="tNotes" name="notes" rows="2" placeholder="e.g. Near Kenyatta University gate, top floor preferred, student…"></textarea>
+              <textarea id="tNotes" name="notes" rows="2" placeholder="I.E. I have pets"></textarea>
             </div>
           </div>
 
           <div class="form-foot">
-            <p class="fee-note">🚗 Transport to view options is <strong>provided by us</strong>. Total charge: <strong class="price-pill">KSh 2,000</strong> — until you get your desired rental. No hidden fees.</p>
+            <!-- The amount below follows the unit type picked above (rates live in js/script.js → RATE_CARD) -->
+            <p class="fee-note" aria-live="polite">🚗 Transport to view options is <strong>provided by us</strong>. Total charge: <strong class="price-pill" id="feeAmount">from KSh 2,000</strong><span class="fee-unit" id="feeUnit"> (by unit type)</span> — until you get your desired rental. No hidden fees.</p>
             <button type="submit" class="btn btn-green btn-lg shine">
               <span class="btn-ico">💬</span> Submit on WhatsApp
             </button>
@@ -262,7 +236,7 @@
             <div class="step-num">1</div>
             <div class="step-ico">📝</div>
             <h3>Fill Your Wish List</h3>
-            <p>Tell us the unit type, location in Kasarani or Roysambu, your budget and your dates.</p>
+            <p>Tell us the unit type, location in Kasarani or Roysambu, your budget and your viewing date.</p>
           </div>
           <div class="step-arrow" aria-hidden="true">➜</div>
           <div class="step reveal d1">
@@ -283,7 +257,7 @@
             <div class="step-num">4</div>
             <div class="step-ico">🔑</div>
             <h3>Move In Happy</h3>
-            <p>Once you love a unit, you move in on your chosen date. Flat charge: KSh 2,000 — that's it.</p>
+            <p>Once you love a unit, you move in. Your charge is set by unit type, from KSh 2,000 — that's it.</p>
           </div>
         </div>
       </div>
@@ -293,8 +267,8 @@
     <section class="pricing-band" id="pricing">
       <div class="container pricing-inner">
         <div class="pricing-copy reveal">
-          <span class="tag tag-white">One Honest Price</span>
-          <h2>KSh 2,000 flat. <span>Until you get your desired rental.</span></h2>
+          <span class="tag tag-white">Honest Rates</span>
+          <h2>One fair charge per unit type. <span>Until you get your desired rental.</span></h2>
           <ul class="tick-list">
             <li>✅ Transport to view options — provided by us</li>
             <li>✅ Unlimited viewings until you're satisfied</li>
@@ -303,8 +277,9 @@
           </ul>
         </div>
         <div class="pricing-card reveal d1">
-          <div class="pc-top">TOTAL CHARGE</div>
-          <div class="pc-price"><small>KSh</small> 2,000</div>
+          <div class="pc-top">TOTAL CHARGE BY UNIT TYPE</div>
+          <!-- Rows are generated from RATE_CARD in js/script.js so every price on the site stays in sync -->
+          <ul class="rate-list" id="rateList" aria-label="Total charge by unit type"></ul>
           <div class="pc-sub">paid only as we hunt with you<br />until you secure your home</div>
           <a href="#finder" class="btn btn-orange btn-block shine">Start My Hunt →</a>
           <div class="pc-note">🛡️ Safe · Reliable · Stress-free</div>
@@ -333,7 +308,7 @@
               <p class="listing-loc">📍 Roysambu · TRM Drive</p>
               <div class="listing-foot">
                 <span class="listing-price">KSh 7,500<small>/mo</small></span>
-                <a class="btn btn-green btn-sm" data-wa-unit="Neat Bedsitter — Roysambu TRM Drive (KSh 7,500/mo)" href="#" target="_blank" rel="noopener">💬 Inquire</a>
+                <a class="btn btn-green btn-sm" data-wa-unit="Neat Bedsitter — Roysambu TRM Drive (KSh 7,500/mo)" data-wa-type="Bedsitter" href="#" target="_blank" rel="noopener">💬 Inquire</a>
               </div>
             </div>
           </article>
@@ -349,7 +324,7 @@
               <p class="listing-loc">📍 Kasarani · Seasons</p>
               <div class="listing-foot">
                 <span class="listing-price">KSh 12,000<small>/mo</small></span>
-                <a class="btn btn-green btn-sm" data-wa-unit="Modern Studio — Kasarani Seasons (KSh 12,000/mo)" href="#" target="_blank" rel="noopener">💬 Inquire</a>
+                <a class="btn btn-green btn-sm" data-wa-unit="Modern Studio — Kasarani Seasons (KSh 12,000/mo)" data-wa-type="Studio" href="#" target="_blank" rel="noopener">💬 Inquire</a>
               </div>
             </div>
           </article>
@@ -365,7 +340,7 @@
               <p class="listing-loc">📍 Roysambu · Thindigua</p>
               <div class="listing-foot">
                 <span class="listing-price">KSh 15,000<small>/mo</small></span>
-                <a class="btn btn-green btn-sm" data-wa-unit="1 Bedroom — Thindigua (KSh 15,000/mo)" href="#" target="_blank" rel="noopener">💬 Inquire</a>
+                <a class="btn btn-green btn-sm" data-wa-unit="1 Bedroom — Thindigua (KSh 15,000/mo)" data-wa-type="1 Bedroom" href="#" target="_blank" rel="noopener">💬 Inquire</a>
               </div>
             </div>
           </article>
@@ -381,7 +356,7 @@
               <p class="listing-loc">📍 Roysambu · Garden Estate</p>
               <div class="listing-foot">
                 <span class="listing-price">KSh 22,000<small>/mo</small></span>
-                <a class="btn btn-green btn-sm" data-wa-unit="2 Bedroom — Garden Estate (KSh 22,000/mo)" href="#" target="_blank" rel="noopener">💬 Inquire</a>
+                <a class="btn btn-green btn-sm" data-wa-unit="2 Bedroom — Garden Estate (KSh 22,000/mo)" data-wa-type="2 Bedroom" href="#" target="_blank" rel="noopener">💬 Inquire</a>
               </div>
             </div>
           </article>
@@ -413,7 +388,7 @@
               <p class="listing-loc">📍 Kasarani · Clay City</p>
               <div class="listing-foot">
                 <span class="listing-price">From KSh 8,000<small>/mo</small></span>
-                <a class="btn btn-green btn-sm" data-wa-unit="Bedsitters & 1BRs — Clay City block (from KSh 8,000/mo)" href="#" target="_blank" rel="noopener">💬 Inquire</a>
+                <a class="btn btn-green btn-sm" data-wa-unit="Bedsitters & 1BRs — Clay City block (from KSh 8,000/mo)" data-wa-type="Bedsitter,1 Bedroom" href="#" target="_blank" rel="noopener">💬 Inquire</a>
               </div>
             </div>
           </article>
@@ -531,9 +506,9 @@
             and <strong>landlords find tenants</strong> — in a stress-free way.
           </p>
           <p class="reveal d2">
-            You tell us what you want — the unit type, the location, your budget and your dates.
+            You tell us what you want — the unit type, the location, your budget and your viewing date.
             We provide transport, walk with you through real options, and keep hunting until you
-            get your desired rental. One flat charge of <strong>KSh 2,000</strong>. No gimmicks,
+            get your desired rental. One simple charge by unit type, <strong>from KSh 2,000</strong>. No gimmicks,
             no fake listings, no endless "come back tomorrow."
           </p>
           <p class="reveal d3">
@@ -673,7 +648,7 @@
       </div>
     </div>
     <div class="foot-bottom">
-      <p>© <span id="year">2026</span> Nyumba Hunt Kenya · Kasarani &amp; Roysambu · Flat KSh 2,000 until you get your desired rental 🇰🇪</p>
+      <p>© <span id="year">2026</span> Nyumba Hunt Kenya · Kasarani &amp; Roysambu · Charges from KSh 2,000 until you get your desired rental 🇰🇪</p>
     </div>
   </footer>
 
